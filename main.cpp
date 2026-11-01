@@ -3,8 +3,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <limits>
-#include <stack> //include stack for recent-deletions; currently working on the code
-
+#include <stack>
 
 // imports
 using std::cin;
@@ -14,9 +13,13 @@ using std::max;
 using std::numeric_limits;
 using std::streamsize;
 using std::string;
+using std::stack;
+
 // Prototype
 void AddStudents();
 void SearchStudent();
+void DeletedStudentMenu();
+void DisplayRecentDeletions();
 int checkInt(const string &prompt, int minVal, int maxVal);
 float checkFloat(const string &question, float minVal, float maxVal);
 string checkString(const string &question);
@@ -44,6 +47,7 @@ private:
 
 public:
     LinkedList() : head(nullptr), tail(nullptr) {}
+    
 
     ~LinkedList()
     {
@@ -55,6 +59,33 @@ public:
         }
         tail = nullptr;
     };
+
+    bool DeleteStudent(const string& id, Student& deletedStudent)
+    {
+        Node* cur = head;
+
+        while (cur != nullptr && cur->data.studentID != id)
+        {
+            cur = cur->next;
+       }
+        if (cur == nullptr)
+            return false;
+
+        deletedStudent = cur->data;
+
+        if (cur->prev != nullptr)
+            cur->prev->next = cur->next;
+        else
+            head = cur->next;
+
+        if (cur->next != nullptr)
+            cur->next->prev = cur->prev;
+        else
+            tail = cur->prev;
+
+        delete cur;
+        return true;
+    }
 
     void AppendStudent(const Student &s)
     {
@@ -147,7 +178,7 @@ public:
 
 // Global
 LinkedList StudentInfo;
-
+stack<Student> recentDeletions;
 int main()
 {
 
@@ -189,13 +220,13 @@ int main()
             cout << "Update Student:\n";
             break;
         case 5:
-            cout << "Delete Student:\n";
+            DeletedStudentMenu();
             break;
         case 6:
             cout << "Sort Students:\n";
             break;
         case 7:
-            cout << "Stack Operations:\n";
+            DisplayRecentDeletions();
             break;
         case 8:
             cout << "Queue Operations:\n";
@@ -274,6 +305,46 @@ void SearchStudent()
         }
 
     } while (choice != 3);
+}
+
+void DeletedStudentMenu()
+{
+    string id = checkString("Enter Student ID to delete: ");
+    Student deletedStudent;
+
+    if (StudentInfo.DeleteStudent(id, deletedStudent))
+    {
+        recentDeletions.push(deletedStudent);
+        cout << "\n Student successfully deleted from the list! \n";
+        printStudent(deletedStudent);
+    }
+    else
+    {
+        cout << "\n Student not found... \n";
+    }
+}
+
+void DisplayRecentDeletions()
+{
+    if (recentDeletions.empty())
+    {
+        cout << "No recent deletions. \n";
+        return;
+    }
+
+    stack<Student> temp = recentDeletions;
+
+    cout << "========================================\n";
+    cout << "Recent Deletions\n";
+    cout << "========================================\n";
+
+    while (!temp.empty())
+    {
+        printStudent(temp.top());
+        cout << "------------------------------------\n";
+
+        temp.pop();
+    }
 }
 
 int checkInt(const string &question, int minVal, int maxVal)
