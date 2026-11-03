@@ -11,13 +11,14 @@ using std::cout;
 using std::endl;
 using std::max;
 using std::numeric_limits;
+using std::stack;
 using std::streamsize;
 using std::string;
-using std::stack;
 
 // Prototype
 void AddStudents();
 void SearchStudent();
+void BinarySearchStudent();
 void DeletedStudentMenu();
 void DisplayRecentDeletions();
 int checkInt(const string &prompt, int minVal, int maxVal);
@@ -47,7 +48,6 @@ private:
 
 public:
     LinkedList() : head(nullptr), tail(nullptr) {}
-    
 
     ~LinkedList()
     {
@@ -60,14 +60,14 @@ public:
         tail = nullptr;
     };
 
-    bool DeleteStudent(const string& id, Student& deletedStudent)
+    bool DeleteStudent(const string &id, Student &deletedStudent)
     {
-        Node* cur = head;
+        Node *cur = head;
 
         while (cur != nullptr && cur->data.studentID != id)
         {
             cur = cur->next;
-       }
+        }
         if (cur == nullptr)
             return false;
 
@@ -294,19 +294,9 @@ void SearchStudent()
         case 1:
             StudentInfo.LinearSearchStudent();
             break;
-       case 2:
-{
-    string id = checkString("Enter ID to search for: ");
-    Node *result = StudentInfo.BinarySearchStudent(id);
-
-    if (result != nullptr)
-        printStudent(result->data);
-    else
-        cout << "Student not found.\n";
-
-    break;
-}
-            
+        case 2:
+            BinarySearchStudent();
+            break;
 
         case 3:
             cout << "Returning to main menu\n";
@@ -317,6 +307,17 @@ void SearchStudent()
         }
 
     } while (choice != 3);
+}
+
+void BinarySearchStudent()
+{
+    string id = checkString("Enter ID to search for: ");
+    Node *result = StudentInfo.BinarySearchStudent(id);
+
+    if (result != nullptr)
+        printStudent(result->data);
+    else
+        cout << "Student not found.\n";
 }
 
 void DeletedStudentMenu()
