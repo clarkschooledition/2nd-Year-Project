@@ -104,12 +104,8 @@ public:
     }
     void DisplayStudent() const
     {
-        if (head == nullptr)
-        {
-            cout << "No students yet.\n";
-            return;
-        }
-        int i = 1;
+        if(checkStudentListIfEmpty()) { return; }
+
         for (Node *cur = head; cur != nullptr; cur = cur->next)
         {
             printStudent(cur->data);
@@ -118,6 +114,8 @@ public:
 
     void LinearSearchStudent()
     {
+        if(checkStudentListIfEmpty()) { return; }
+
         string searchTarget = checkString("Enter ID to search for: ");
 
         for (Node *cur = head; cur != nullptr; cur = cur->next)
@@ -174,6 +172,15 @@ public:
             if (cur->data.studentID == id)
                 return cur;
         return nullptr;
+    }
+    bool checkStudentListIfEmpty() const
+    {
+        if(head == nullptr) {
+            cout << "Student List is Currently Empty, Please Add Student." << endl;
+            return true;
+        } else {
+            return false;
+        }
     }
 };
 
@@ -311,6 +318,8 @@ void SearchStudent()
 
 void BinarySearchStudent()
 {
+    if(StudentInfo.checkStudentListIfEmpty()) { return; }
+
     string id = checkString("Enter ID to search for: ");
     Node *result = StudentInfo.BinarySearchStudent(id);
 
@@ -322,6 +331,8 @@ void BinarySearchStudent()
 
 void DeletedStudentMenu()
 {
+    if(StudentInfo.checkStudentListIfEmpty()) { return; }
+
     string id = checkString("Enter Student ID to delete: ");
     Student deletedStudent;
 
