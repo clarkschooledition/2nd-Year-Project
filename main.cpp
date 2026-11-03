@@ -166,6 +166,7 @@ public:
                 end = mid;
             }
         }
+        return nullptr;
     }
     Node *FindById(const string &id) const
     {
@@ -293,9 +294,20 @@ void SearchStudent()
         case 1:
             StudentInfo.LinearSearchStudent();
             break;
-        case 2:
-            // StudentInfo.BinarySearchStudent();
-            break;
+       case 2:
+{
+    string id = checkString("Enter ID to search for: ");
+    Node *result = StudentInfo.BinarySearchStudent(id);
+
+    if (result != nullptr)
+        printStudent(result->data);
+    else
+        cout << "Student not found.\n";
+
+    break;
+}
+            
+
         case 3:
             cout << "Returning to main menu\n";
             break;
