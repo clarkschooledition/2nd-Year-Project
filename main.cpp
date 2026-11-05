@@ -11,18 +11,20 @@ using std::cout;
 using std::endl;
 using std::max;
 using std::numeric_limits;
+using std::stack;
 using std::streamsize;
 using std::string;
-using std::stack;
 
 // Prototype
 void AddStudents();
 void SearchStudent();
-void DeletedStudentMenu();
+void BinarySearchStudent();
+void DeleteStudentMenu();
 void DisplayRecentDeletions();
-int checkInt(const string &prompt, int minVal, int maxVal);
-float checkFloat(const string &question, float minVal, float maxVal);
-string checkString(const string &question);
+void StudentServiceMenu();
+int checkInt(const string& prompt, int minVal, int maxVal);
+float checkFloat(const string& question, float minVal, float maxVal);
+string checkString(const string& question);
 string checkUniqueID();
 struct Student
 {
@@ -30,36 +32,161 @@ struct Student
     float GPA;
 };
 // ProtoType but needed student
-void printStudent(const Student &s);
+void printStudent(const Student& s);
 struct Node
 {
     Student data;
-    Node *prev;
-    Node *next;
-    Node(const Student &s) : data(s), prev(nullptr), next(nullptr) {}
+    Node* prev;
+    Node* next;
+    Node(const Student& s) : data(s), prev(nullptr), next(nullptr) {}
+};
+
+class StudentServiceQueue
+{
+private:
+    Node* front;
+    Node* rear;
+
+public:
+
+    // Constructor
+    StudentServiceQueue()
+    {
+        front = nullptr;
+        rear = nullptr;
+    }
+
+    // Destructor
+    ~StudentServiceQueue()
+    {
+        while (front != nullptr)
+        {
+            Node* temp = front;
+            front = front->next;
+            delete temp;
+        }
+
+        rear = nullptr;
+    }
+
+    // ENQUEUE
+    void Enqueue(const Student& student)
+    {
+        Node* newNode = new Node(student);
+
+        if (front == nullptr)
+        {
+            front = newNode;
+            rear = newNode;
+        }
+        else
+        {
+            rear->next = newNode;
+            newNode->prev = rear;
+            rear = newNode;
+        }
+
+        cout << "\nStudent successfully added to service queue!\n";
+    }
+
+    // DEQUEUE
+    void Dequeue()
+    {
+        if (front == nullptr)
+        {
+            cout << "\nService queue is empty.\n";
+            return;
+        }
+
+        Node* temp = front;
+
+        cout << "\n===== STUDENT SERVED =====\n";
+        printStudent(temp->data);
+
+        front = front->next;
+
+        if (front == nullptr)
+        {
+            rear = nullptr;
+        }
+        else
+        {
+            front->prev = nullptr;
+        }
+
+        delete temp;
+
+        cout << "Student successfully removed from queue.\n";
+    }
+
+    // PEEK 
+    void Peek()
+    {
+        if (front == nullptr)
+        {
+            cout << "\nService queue is empty.\n";
+            return;
+        }
+
+        cout << "\n===== NEXT STUDENT =====\n";
+        printStudent(front->data);
+    }
+
+    // DISPLAY 
+    void Display()
+    {
+        if (front == nullptr)
+        {
+            cout << "\nService queue is empty.\n";
+            return;
+        }
+
+        Node* current = front;
+        int position = 1;
+
+        cout << "\n===== STUDENT SERVICE QUEUE =====\n";
+
+        while (current != nullptr)
+        {
+            cout << "\nPosition: " << position << endl;
+
+            printStudent(current->data);
+
+            current = current->next;
+            position++;
+        }
+
+        cout << "=================================\n";
+    }
+
+    // Check if queue is empty
+    bool IsEmpty() const
+    {
+        return front == nullptr;
+    }
 };
 
 class LinkedList
 {
 private:
-    Node *head;
-    Node *tail;
+    Node* head;
+    Node* tail;
 
 public:
     LinkedList() : head(nullptr), tail(nullptr) {}
-    
 
     ~LinkedList()
     {
         while (head != nullptr)
         {
-            Node *toDelete = head;
+            Node* toDelete = head;
             head = head->next;
             delete toDelete;
         }
         tail = nullptr;
     };
 
+    // Delete Student function, by ID and return the deleted student
     bool DeleteStudent(const string& id, Student& deletedStudent)
     {
         Node* cur = head;
@@ -67,7 +194,7 @@ public:
         while (cur != nullptr && cur->data.studentID != id)
         {
             cur = cur->next;
-       }
+        }
         if (cur == nullptr)
             return false;
 
@@ -87,9 +214,9 @@ public:
         return true;
     }
 
-    void AppendStudent(const Student &s)
+    void AppendStudent(const Student& s)
     {
-        Node *newNode = new Node(s);
+        Node* newNode = new Node(s);
 
         if (head == nullptr)
         {
@@ -104,13 +231,9 @@ public:
     }
     void DisplayStudent() const
     {
-        if (head == nullptr)
-        {
-            cout << "No students yet.\n";
-            return;
-        }
-        int i = 1;
-        for (Node *cur = head; cur != nullptr; cur = cur->next)
+        if (checkStudentListIfEmpty()) { return; }
+
+        for (Node* cur = head; cur != nullptr; cur = cur->next)
         {
             printStudent(cur->data);
         }
@@ -118,25 +241,34 @@ public:
 
     void LinearSearchStudent()
     {
+        bool found = false;
+
+        if (checkStudentListIfEmpty()) { return; }
+
         string searchTarget = checkString("Enter ID to search for: ");
 
-        for (Node *cur = head; cur != nullptr; cur = cur->next)
+        for (Node* cur = head; cur != nullptr; cur = cur->next)
         {
             if (cur->data.studentID == searchTarget)
             {
                 printStudent(cur->data);
+                found = true;
+                break;
             }
         }
-        cout << "(Info)Result Not found\n";
+        if (!found)
+        {
+            cout << "(Info)Result Not found\n";
+        }
     }
 
-    Node *findMiddle(Node *start, Node *end)
+    Node* findMiddle(Node* start, Node* end)
     {
         if (start == nullptr)
             return nullptr;
 
-        Node *slow = start;
-        Node *fast = start;
+        Node* slow = start;
+        Node* fast = start;
         while (fast != end && fast->next != end)
         {
             slow = slow->next;
@@ -145,14 +277,14 @@ public:
         return slow;
     }
 
-    Node *BinarySearchStudent(const string &id)
+    Node* BinarySearchStudent(const string& id)
     {
-        Node *start = head;
-        Node *end = nullptr;
+        Node* start = head;
+        Node* end = nullptr;
 
         while (start != end)
         {
-            Node *mid = findMiddle(start, end);
+            Node* mid = findMiddle(start, end);
             if (mid->data.studentID == id)
             {
                 return mid;
@@ -166,19 +298,31 @@ public:
                 end = mid;
             }
         }
+        return nullptr;
     }
-    Node *FindById(const string &id) const
+    Node* FindById(const string& id) const
     {
-        for (Node *cur = head; cur != nullptr; cur = cur->next)
+        for (Node* cur = head; cur != nullptr; cur = cur->next)
             if (cur->data.studentID == id)
                 return cur;
         return nullptr;
+    }
+    bool checkStudentListIfEmpty() const
+    {
+        if (head == nullptr) {
+            cout << "Student List is Currently Empty, Please Add Student." << endl;
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 };
 
 // Global
 LinkedList StudentInfo;
 stack<Student> recentDeletions;
+StudentServiceQueue ServiceQueue;
 int main()
 {
 
@@ -220,7 +364,7 @@ int main()
             cout << "Update Student:\n";
             break;
         case 5:
-            DeletedStudentMenu();
+            DeleteStudentMenu();
             break;
         case 6:
             cout << "Sort Students:\n";
@@ -229,7 +373,7 @@ int main()
             DisplayRecentDeletions();
             break;
         case 8:
-            cout << "Queue Operations:\n";
+            StudentServiceMenu();
             break;
         case 9:
             cout << "Student Statistics:\n";
@@ -294,8 +438,9 @@ void SearchStudent()
             StudentInfo.LinearSearchStudent();
             break;
         case 2:
-            // StudentInfo.BinarySearchStudent();
+            BinarySearchStudent();
             break;
+
         case 3:
             cout << "Returning to main menu\n";
             break;
@@ -307,23 +452,58 @@ void SearchStudent()
     } while (choice != 3);
 }
 
-void DeletedStudentMenu()
+void BinarySearchStudent()
 {
+    if (StudentInfo.checkStudentListIfEmpty()) { return; }
+
+    string id = checkString("Enter ID to search for: ");
+    Node* result = StudentInfo.BinarySearchStudent(id);
+
+    if (result != nullptr)
+        printStudent(result->data);
+    else
+        cout << "Student not found.\n";
+}
+
+// Delete Student Menu
+void DeleteStudentMenu()
+{
+    if (StudentInfo.checkStudentListIfEmpty()) { return; }
+
     string id = checkString("Enter Student ID to delete: ");
     Student deletedStudent;
 
-    if (StudentInfo.DeleteStudent(id, deletedStudent))
+    Node* student = StudentInfo.FindById(id);
+    if (student == nullptr)
     {
-        recentDeletions.push(deletedStudent);
-        cout << "\n Student successfully deleted from the list! \n";
-        printStudent(deletedStudent);
+		cout << "\nStudent not found...\n";
+        return;
+    }
+
+    //Student to be deleted's information
+	cout << "\n===== STUDENT TO BE DELETED =====\n";
+    printStudent(student->data);
+
+	//delete confirmation
+    string confirm;
+	cout << "Are you sure you want to delete this student? (y/n): ";
+    getline(cin, confirm);
+
+    if (confirm == "y" || confirm == "Y")
+    {
+        if (StudentInfo.DeleteStudent(id, deletedStudent))
+        {
+            recentDeletions.push(deletedStudent);
+            cout << "\n Student successfully deleted!\n";
+			cout << "Deleted student information can be viewed in recent deletions.\n";
+        }
     }
     else
     {
-        cout << "\n Student not found... \n";
+        cout << "\nDeletion cancelled...\n";
     }
 }
-
+// Recent Deletions Menu
 void DisplayRecentDeletions()
 {
     if (recentDeletions.empty())
@@ -335,7 +515,7 @@ void DisplayRecentDeletions()
     stack<Student> temp = recentDeletions;
 
     cout << "========================================\n";
-    cout << "Recent Deletions\n";
+    cout << "         Recent Deletions\n";
     cout << "========================================\n";
 
     while (!temp.empty())
@@ -347,7 +527,60 @@ void DisplayRecentDeletions()
     }
 }
 
-int checkInt(const string &question, int minVal, int maxVal)
+void StudentServiceMenu()
+{
+    int choice;
+
+    do
+    {
+        cout << "\n========================================\n";
+        cout << "         STUDENT SERVICE QUEUE\n";
+        cout << "========================================\n";
+        cout << "1. Enqueue Student\n";
+        cout << "2. Dequeue Student\n";
+        cout << "3. Peek Next Student\n";
+        cout << "4. Display Queue\n";
+        cout << "5. Return to Main Menu\n";
+        cout << "========================================\n";
+
+        choice = checkInt("Enter your choice: ", 1, 5);
+
+        switch (choice)
+        {
+        case 1:
+        {
+            string id = checkString("Enter Student ID: ");
+            Node* student = StudentInfo.FindById(id);
+
+            if (student != nullptr)
+                ServiceQueue.Enqueue(student->data);
+            else
+                cout << "\nStudent ID not found in records.\n";
+
+            break;
+        }
+
+        case 2:
+            ServiceQueue.Dequeue();
+            break;
+
+        case 3:
+            ServiceQueue.Peek();
+            break;
+
+        case 4:
+            ServiceQueue.Display();
+            break;
+
+        case 5:
+            cout << "\nReturning to main menu...\n";
+            break;
+        }
+
+    } while (choice != 5);
+}
+
+int checkInt(const string& question, int minVal, int maxVal)
 {
     int value;
     while (true)
@@ -364,7 +597,7 @@ int checkInt(const string &question, int minVal, int maxVal)
     }
 }
 
-float checkFloat(const string &question, float minVal, float maxVal)
+float checkFloat(const string& question, float minVal, float maxVal)
 {
     int value;
     while (true)
@@ -381,7 +614,7 @@ float checkFloat(const string &question, float minVal, float maxVal)
     }
 }
 
-string checkString(const string &question)
+string checkString(const string& question)
 {
     string ans;
     while (true)
@@ -393,7 +626,7 @@ string checkString(const string &question)
         cout << "This cannot be empty. \n";
     }
 }
-void printStudent(const Student &s)
+void printStudent(const Student& s)
 {
     cout << "ID: " << s.studentID << "\n";
     cout << "Name: " << s.firstName << " " << s.middleInitials << " " << s.surname << "\n";
