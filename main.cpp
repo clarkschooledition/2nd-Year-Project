@@ -21,6 +21,7 @@ void SearchStudent();
 void BinarySearchStudent();
 void DeletedStudentMenu();
 void DisplayRecentDeletions();
+void StudentServiceMenu();
 int checkInt(const string &prompt, int minVal, int maxVal);
 float checkFloat(const string &question, float minVal, float maxVal);
 string checkString(const string &question);
@@ -38,6 +39,131 @@ struct Node
     Node *prev;
     Node *next;
     Node(const Student &s) : data(s), prev(nullptr), next(nullptr) {}
+};
+
+class StudentServiceQueue
+{
+private:
+    Node* front;
+    Node* rear;
+
+public:
+
+    // Constructor
+    StudentServiceQueue()
+    {
+        front = nullptr;
+        rear = nullptr;
+    }
+
+    // Destructor
+    ~StudentServiceQueue()
+    {
+        while (front != nullptr)
+        {
+            Node* temp = front;
+            front = front->next;
+            delete temp;
+        }
+
+        rear = nullptr;
+    }
+
+    // ENQUEUE:
+    void Enqueue(const Student& student)
+    {
+        Node* newNode = new Node(student);
+
+        if (front == nullptr)
+        {
+            front = newNode;
+            rear = newNode;
+        }
+        else
+        {
+            rear->next = newNode;
+            newNode->prev = rear;
+            rear = newNode;
+        }
+
+        cout << "\nStudent successfully added to service queue!\n";
+    }
+
+    // DEQUEUE:
+    void Dequeue()
+    {
+        if (front == nullptr)
+        {
+            cout << "\nService queue is empty.\n";
+            return;
+        }
+
+        Node* temp = front;
+
+        cout << "\n===== STUDENT SERVED =====\n";
+        printStudent(temp->data);
+
+        front = front->next;
+
+        if (front == nullptr)
+        {
+            rear = nullptr;
+        }
+        else
+        {
+            front->prev = nullptr;
+        }
+
+        delete temp;
+
+        cout << "Student successfully removed from queue.\n";
+    }
+
+    // PEEK 
+    void Peek()
+    {
+        if (front == nullptr)
+        {
+            cout << "\nService queue is empty.\n";
+            return;
+        }
+
+        cout << "\n===== NEXT STUDENT =====\n";
+        printStudent(front->data);
+    }
+
+    // DISPLAY 
+    void Display()
+    {
+        if (front == nullptr)
+        {
+            cout << "\nService queue is empty.\n";
+            return;
+        }
+
+        Node* current = front;
+        int position = 1;
+
+        cout << "\n===== STUDENT SERVICE QUEUE =====\n";
+
+        while (current != nullptr)
+        {
+            cout << "\nPosition: " << position << endl;
+
+            printStudent(current->data);
+
+            current = current->next;
+            position++;
+        }
+
+        cout << "=================================\n";
+    }
+
+    // Check if queue is empty
+    bool IsEmpty() const
+    {
+        return front == nullptr;
+    }
 };
 
 class LinkedList
@@ -187,6 +313,7 @@ public:
 // Global
 LinkedList StudentInfo;
 stack<Student> recentDeletions;
+StudentServiceQueue ServiceQueue;
 int main()
 {
 
@@ -237,7 +364,7 @@ int main()
             DisplayRecentDeletions();
             break;
         case 8:
-            cout << "Queue Operations:\n";
+            StudentServiceMenu();
             break;
         case 9:
             cout << "Student Statistics:\n";
@@ -369,6 +496,59 @@ void DisplayRecentDeletions()
 
         temp.pop();
     }
+}
+
+void StudentServiceMenu()
+{
+    int choice;
+
+    do
+    {
+        cout << "\n========================================\n";
+        cout << "         STUDENT SERVICE QUEUE\n";
+        cout << "========================================\n";
+        cout << "1. Enqueue Student\n";
+        cout << "2. Dequeue Student\n";
+        cout << "3. Peek Next Student\n";
+        cout << "4. Display Queue\n";
+        cout << "5. Return to Main Menu\n";
+        cout << "========================================\n";
+
+        choice = checkInt("Enter your choice: ", 1, 5);
+
+        switch (choice)
+        {
+        case 1:
+        {
+            string id = checkString("Enter Student ID: ");
+            Node* student = StudentInfo.FindById(id);
+
+            if (student != nullptr)
+                ServiceQueue.Enqueue(student->data);
+            else
+                cout << "\nStudent ID not found in records.\n";
+
+            break;
+        }
+
+        case 2:
+            ServiceQueue.Dequeue();
+            break;
+
+        case 3:
+            ServiceQueue.Peek();
+            break;
+
+        case 4:
+            ServiceQueue.Display();
+            break;
+
+        case 5:
+            cout << "\nReturning to main menu...\n";
+            break;
+        }
+
+    } while (choice != 5);
 }
 
 int checkInt(const string &question, int minVal, int maxVal)
